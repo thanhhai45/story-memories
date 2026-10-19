@@ -1,0 +1,85 @@
+# Kamal 2 — triển khai lên một máy chủ: web + job worker + PostgreSQL.
+# Giá trị lấy từ .env.deploy (xem .env.deploy.example). Lệnh: make deploy
+service: anniversary_memories
+
+image: <%= ENV.fetch("REGISTRY_USERNAME", "your-user") %>/anniversary_memories
+
+servers:
+  web:
+    - <%= ENV.fetch("DEPLOY_HOST", "203.0.113.10") %>
+  # Worker riêng cho AI + FFmpeg để việc dựng video không làm chậm web
+  job:
+    hosts:
+      - <%= ENV.fetch("DEPLOY_HOST", "203.0.113.10") %>
+    cmd: bin/jobs
+
+proxy:
+  ssl: true
+  host: <%= ENV.fetch("APP_DOMAIN", "memories.example.com") %>
+  # Upload ảnh tối đa 15 MB/ảnh, cho đủ thời gian khi mạng chậm
+  response_timeout: 120
+
+registry:
+<% if ENV["REGISTRY_SERVER"].to_s != "" %>
+  server: <%= ENV["REGISTRY_SERVER"] %>
+<% end %>
+  username: <%= ENV.fetch("REGISTRY_USERNAME", "your-user") %>
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+env:
+  secret:
+    - SECRET_KEY_BASE
+    - POSTGRES_PASSWORD
+    - ADMIN_PASSWORD
+    - ANTHROPIC_API_KEY
+  clear:
+    DB_HOST: anniversary_memories-db
+    POSTGRES_USER: anniversary
+    POSTGRES_DB: anniversary_memories_production
+    ADMIN_USERNAME: <%= ENV.fetch("ADMIN_USERNAME", "admin") %>
+    LLM_MODEL: <%= ENV.fetch("LLM_MODEL", "claude-sonnet-5-5") %>
+    APP_HOST: <%= ENV.fetch("APP_DOMAIN", "memories.example.com") %>
+    RAILS_MAX_THREADS: 3
+    VIDEO_RENDER_CONCURRENCY: 1
+    # Đổi thành "amazon" + thêm S3_* khi muốn lưu file trên S3/R2
+    ACTIVE_STORAGE_SERVICE: local
+    # Thruster: đủ thời gian cho upload ảnh trên mạng chậm
+    HTTP_READ_TIMEOUT: 120
+    HTTP_WRITE_TIMEOUT: 120
+
+aliases:
+  console: app exec --interactive --reuse "bin/rails console"
+  shell: app exec --interactive --reuse "bash"
+  logs: app logs -f
+  dbc: app exec --interactive --reuse "bin/rails dbconsole"
+  jobs-logs: app logs -f --roles job
+
+# Ảnh và video (Active Storage disk) nằm trong volume bền vững, dùng chung cho web + job
+volumes:
+  - "anniversary_memories_storage:/rails/storage"
+
+asset_path: /rails/public/assets
+
+# Lần deploy đầu chạy migrate + seed trước khi healthcheck /up trả về 200
+deploy_timeout: 120
+
+builder:
+  arch: amd64
+  # Build từ thư mục hiện tại (kể cả thay đổi chưa commit), tôn trọng .dockerignore
+  context: .
+
+accessories:
+  db:
+    image: postgres:16
+    host: <%= ENV.fetch("DEPLOY_HOST", "203.0.113.10") %>
+    # Chỉ mở cho localhost của máy chủ, không public ra Internet
+    port: "127.0.0.1:5432:5432"
+    env:
+      clear:
+        POSTGRES_USER: anniversary
+        POSTGRES_DB: anniversary_memories_production
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data

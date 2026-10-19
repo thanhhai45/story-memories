@@ -1,0 +1,14 @@
+<% page_title "Video", @memory.title %>
+
+<div class="mx-auto max-w-3xl">
+  <%= link_to "Quay lại #{@memory.title}", memory_path(@memory, anchor: "video"), class: "link text-sm" %>
+  <h1 class="mt-3 text-3xl sm:text-4xl"><%= @memory.title %></h1>
+  <p class="mt-1 text-sm text-ink/55">
+    <%= [@video_render.video_template&.name, MusicLibrary.find(@video_render.music_track)&.name,
+         "tạo lúc #{l(@video_render.created_at, format: :short)}"].compact.join(", ") %>
+  </p>
+
+  <%= turbo_frame_tag "render_status", class: "mt-8 block" do %>
+    <%= render "video_renders/status", memory: @memory, video_render: @video_render %>
+  <% end %>
+</div>

@@ -1,0 +1,17 @@
+wedding_story:
+  memory: wedding
+  status: completed
+  generated_at: <%= 1.hour.ago.to_fs(:db) %>
+  prompt_data: {}
+  generated_content:
+    title: 6 năm cùng nhau
+    subtitle: 2020 — 2026
+    scenes:
+      - title: Ngày đầu tiên
+        narration: Một hành trình mới bắt đầu từ những điều giản dị.
+        photo_positions: [1]
+      - title: Đồng hành
+        narration: Qua niềm vui và thử thách, vẫn nắm tay nhau.
+        photo_positions: [2]
+    ending: Mong chúng ta còn thật nhiều năm tháng bên nhau.
+    source: template

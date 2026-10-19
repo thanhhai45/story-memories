@@ -1,0 +1,9 @@
+# App dùng polling cho trạng thái job; Action Cable chỉ cần cho turbo-rails.
+development:
+  adapter: async
+
+test:
+  adapter: test
+
+production:
+  adapter: async

@@ -1,0 +1,42 @@
+<% if video_render.completed? && video_render.output_video.attached? %>
+  <div>
+    <%= video_tag rails_blob_path(video_render.output_video, disposition: "inline"),
+          controls: true, autoplay: false, preload: "metadata", playsinline: true,
+          class: "aspect-video w-full rounded-xl bg-ink shadow-lg" %>
+    <div class="mt-5 flex flex-wrap items-center gap-3">
+      <%= link_to "Tải MP4", rails_blob_path(video_render.output_video, disposition: "attachment"),
+            class: "btn-primary", data: { turbo: false } %>
+      <%= link_to "Chia sẻ video", memory_path(memory, anchor: "share"), class: "btn-quiet", data: { turbo_frame: "_top" } %>
+      <span class="text-sm text-ink/55">
+        <%= [video_render.duration_label, human_size(video_render.output_video.byte_size),
+             ("#{video_render.metadata['width']}×#{video_render.metadata['height']}" if video_render.metadata["width"])].compact.join(", ") %>
+      </span>
+    </div>
+  </div>
+<% elsif video_render.failed? %>
+  <div class="section">
+    <p class="font-medium text-rose">Chưa dựng được video</p>
+    <p class="mt-1 text-sm text-ink/70"><%= video_render.error_message.presence || "Có lỗi xảy ra." %></p>
+    <p class="mt-1 text-sm text-ink/55">Ảnh, lời dẫn và các thiết lập của bạn vẫn còn nguyên.</p>
+    <%= form_with url: memory_video_renders_path(memory), scope: :video_render, class: "mt-5", data: { turbo_frame: "_top" } do |f| %>
+      <%= f.hidden_field :video_template_id, value: video_render.video_template_id %>
+      <%= f.hidden_field :music_track, value: video_render.music_track %>
+      <%= f.submit "Thử dựng lại", class: "btn-primary", data: { turbo_submits_with: "Đang gửi…" } %>
+    <% end %>
+  </div>
+<% else %>
+  <div class="section"
+       data-controller="status-poll"
+       data-status-poll-active-value="true"
+       data-status-poll-url-value="<%= memory_video_render_path(memory, video_render) %>">
+    <div class="flex items-baseline justify-between">
+      <p class="font-medium"><%= video_render.queued? ? "Đang chờ tới lượt dựng…" : "Đang dựng video…" %></p>
+      <p class="font-display text-2xl text-plum"><%= video_render.progress %>%</p>
+    </div>
+    <div class="mt-3 h-2 overflow-hidden rounded-full bg-mist" role="progressbar"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="<%= video_render.progress %>">
+      <div class="h-full rounded-full bg-plum transition-[width] duration-700" style="width: <%= video_render.progress %>%"></div>
+    </div>
+    <p class="mt-3 text-sm text-ink/55">Ghép ảnh, chữ, chuyển cảnh và nhạc nền. Bạn có thể rời trang — video vẫn tiếp tục được dựng.</p>
+  </div>
+<% end %>

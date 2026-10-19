@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <title><%= [content_for(:title).presence, "Anniversary Memories"].compact.join(" · ") %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="turbo-prefetch" content="false">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <%= stylesheet_link_tag "fonts", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="min-h-screen">
+    <header class="border-b border-ink/10 bg-white/60">
+      <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-4">
+        <%= link_to root_path, class: "group flex items-baseline gap-2" do %>
+          <span class="font-display text-xl text-ink">Anniversary Memories</span>
+          <span class="hidden text-xs text-ink/50 sm:inline">ảnh và đôi dòng tâm sự, thành một thước phim</span>
+        <% end %>
+        <%= link_to "Tạo kỷ niệm mới", new_memory_path, class: "btn-quiet !px-4 !py-2" %>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-5xl px-5 pb-24 pt-8">
+      <%= render "shared/flash" %>
+      <%= yield %>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,40 @@
+# Cấu hình độ phân giải nhỏ để test dựng video chạy nhanh
+cinematic:
+  name: Romantic Cinematic
+  slug: romantic_cinematic
+  description: Template test
+  position: 1
+  active: true
+  configuration:
+    layout: cinematic
+    width: 320
+    height: 180
+    fps: 12
+    title_duration: 1.0
+    chapter_duration: 1.0
+    photo_duration: 1.0
+    ending_duration: 1.0
+    transition: 0.3
+
+album:
+  name: Photo Album
+  slug: photo_album
+  description: Template test
+  position: 2
+  active: true
+  configuration:
+    layout: album
+    width: 320
+    height: 180
+    fps: 12
+    title_duration: 1.0
+    chapter_duration: 1.0
+    photo_duration: 1.0
+    ending_duration: 1.0
+    transition: 0.3
+    transition_style: slideleft
+    palette:
+      background: EEE7DC
+      text: 3A2F2C
+      muted: 6A5C57
+      accent: B08D57

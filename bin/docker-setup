@@ -1,0 +1,16 @@
+#!/bin/bash -e
+# Chạy một lần khi `docker compose up` (service `setup`):
+# cài gem vào volume, khóa phiên bản cho cả amd64/arm64, chuẩn bị database.
+cd /rails
+
+bundle check >/dev/null 2>&1 || bundle install --jobs 4
+
+# Gemfile.lock dùng chung cho Docker production (Kamal build amd64) và máy Mac Apple Silicon
+if ! grep -q "x86_64-linux" Gemfile.lock 2>/dev/null || ! grep -q "aarch64-linux" Gemfile.lock 2>/dev/null; then
+  bundle lock --add-platform x86_64-linux aarch64-linux >/dev/null
+fi
+
+./bin/rails db:prepare
+RAILS_ENV=test ./bin/rails db:prepare >/dev/null 2>&1 || RAILS_ENV=test ./bin/rails db:create db:schema:load
+./bin/rails tailwindcss:build
+echo "✓ Setup xong. Mở http://localhost:3000"

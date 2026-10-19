@@ -1,0 +1,29 @@
+<div class="flex items-start gap-4">
+  <span class="step-number">4</span>
+  <div class="min-w-0 flex-1">
+    <h2 class="text-2xl">Chia sẻ</h2>
+    <p class="mt-1 text-sm text-ink/60">
+      Ai có link đều xem được video, không cần đăng nhập. Tắt chia sẻ hoặc tạo link mới bất cứ lúc nào để thu hồi link cũ.
+    </p>
+
+    <% if memory.shared? %>
+      <% url = shared_memory_url(token: memory.share_token) %>
+      <div class="mt-5 flex flex-col gap-2 sm:flex-row" data-controller="clipboard">
+        <input type="text" readonly value="<%= url %>" data-clipboard-target="source" aria-label="Link chia sẻ"
+               class="input !mt-0 font-mono text-xs" data-action="focus->clipboard#select">
+        <button type="button" class="btn-primary shrink-0" data-clipboard-target="button" data-action="clipboard#copy">Sao chép link</button>
+      </div>
+      <% unless latest_completed_render %>
+        <p class="mt-2 text-sm text-gilt-deep">Chưa có video hoàn tất — người xem sẽ thấy thông báo “video đang được chuẩn bị”.</p>
+      <% end %>
+      <div class="mt-4 flex flex-wrap items-center gap-3 text-sm">
+        <%= link_to "Mở trang chia sẻ", url, target: "_blank", rel: "noopener", class: "link" %>
+        <%= button_to "Tạo link mới", rotate_memory_sharing_path(memory), method: :patch, class: "btn-quiet !py-2",
+              form: { data: { turbo_confirm: "Link cũ sẽ không còn dùng được. Tiếp tục?" } } %>
+        <%= button_to "Tắt chia sẻ", memory_sharing_path(memory), method: :delete, class: "btn-danger !py-2" %>
+      </div>
+    <% else %>
+      <%= button_to "Bật link chia sẻ", memory_sharing_path(memory), class: "btn-quiet mt-5" %>
+    <% end %>
+  </div>
+</div>

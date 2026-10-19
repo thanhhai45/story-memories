@@ -1,0 +1,23 @@
+<fieldset class="section relative space-y-4" data-scene>
+  <legend class="sr-only">Chương</legend>
+  <div class="flex items-center justify-between">
+    <p class="font-display text-lg text-gilt-deep">Chương <span data-scene-number></span></p>
+    <button type="button" class="text-sm text-rose hover:underline" data-action="story-form#removeScene">Bỏ chương này</button>
+  </div>
+  <label class="block">
+    <span class="field-label">Tiêu đề chương</span>
+    <input type="text" name="story[scenes][][title]" value="<%= scene["title"] %>" maxlength="<%= Stories::Content::LIMITS[:scene_title] %>"
+           class="input" placeholder="Ngày chúng ta bắt đầu">
+  </label>
+  <label class="block">
+    <span class="field-label">Lời dẫn</span>
+    <textarea name="story[scenes][][narration]" rows="3" maxlength="<%= Stories::Content::LIMITS[:narration] %>"
+              class="input leading-relaxed" placeholder="Một hành trình mới bắt đầu…"><%= scene["narration"] %></textarea>
+  </label>
+  <label class="block">
+    <span class="field-label">Ảnh trong chương</span>
+    <input type="text" name="story[scenes][][photo_positions]" value="<%= Array(scene["photo_positions"]).join(", ") %>"
+           class="input font-mono text-sm" inputmode="numeric" placeholder="1, 2, 3">
+    <span class="field-hint block">Số thứ tự ảnh (1–<%= [photo_count, 1].max %>), cách nhau bằng dấu phẩy. Ảnh chưa được xếp sẽ tự vào chương cuối.</span>
+  </label>
+</fieldset>

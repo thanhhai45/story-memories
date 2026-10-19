@@ -1,0 +1,22 @@
+wedding:
+  title: 6 năm ngày cưới
+  occasion: anniversary
+  style: romantic
+  status: draft
+  start_date: 2020-10-20
+  end_date: 2026-10-20
+  person_names: Minh & Lan
+  story_notes: Sáu năm qua có nhiều thay đổi. Chúng mình vẫn luôn đồng hành cùng nhau.
+  video_template: cinematic
+  music_track: piano_nhe_nhang
+  share_enabled: false
+
+birthday:
+  title: Sinh nhật mẹ
+  occasion: birthday
+  style: nostalgic
+  status: draft
+  video_template: album
+  music_track: am_ap
+  share_enabled: true
+  share_token: abcdefghijklmnopqrstuvwx12345678

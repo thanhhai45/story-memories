@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+/* Bảng màu: mực tím than của album cũ, giấy ảnh lạnh màu sương, nhũ vàng ép kim. */
+@theme {
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #2a2238;
+  --color-paper: #f6f4f8;
+  --color-mist: #e6e1ec;
+  --color-plum: #6b4a7a;
+  --color-plum-deep: #523862;
+  --color-gilt: #b0894a;
+  --color-gilt-deep: #8a6a33;
+  --color-rose: #b4536b;
+}
+
+@layer base {
+  html { color-scheme: light; }
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+    font-weight: 400;
+  }
+  h1, h2, h3 { @apply font-display text-ink; font-weight: 600; text-wrap: balance; }
+  p { text-wrap: pretty; }
+  :focus-visible { outline: 2px solid var(--color-plum); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium
+         transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@layer components {
+  .btn-primary { @apply btn bg-plum text-white hover:bg-plum-deep; }
+  .btn-quiet { @apply btn border border-ink/15 bg-white text-ink hover:border-ink/40; }
+  .btn-danger { @apply btn border border-rose/30 bg-white text-rose hover:bg-rose/5; }
+  .link { @apply text-plum underline decoration-plum/30 underline-offset-4 hover:decoration-plum; }
+
+  .field-label { @apply block text-sm font-medium text-ink/80; }
+  .field-hint { @apply mt-1 text-xs text-ink/55; }
+  .input {
+    @apply mt-1.5 block w-full rounded-lg border border-ink/15 bg-white px-3.5 py-2.5 text-sm text-ink
+           placeholder:text-ink/35 focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/20;
+  }
+
+  /* Ảnh in: viền trắng như ảnh rửa, bóng rất nhẹ */
+  .print {
+    @apply bg-white p-2 shadow-[0_1px_2px_rgba(42,34,56,0.08),0_8px_24px_-12px_rgba(42,34,56,0.25)];
+  }
+
+  .section { @apply rounded-2xl border border-ink/10 bg-white/70 p-6 sm:p-8; }
+  .step-number {
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gilt/50
+           font-display text-sm text-gilt-deep;
+  }
+  .is-dragging { @apply border-plum bg-plum/5; }
+}

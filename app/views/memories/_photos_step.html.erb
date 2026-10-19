@@ -1,0 +1,85 @@
+<div class="flex items-start gap-4">
+  <span class="step-number">1</span>
+  <div class="min-w-0 flex-1">
+    <div class="flex flex-wrap items-baseline justify-between gap-2">
+      <h2 class="text-2xl">Ảnh</h2>
+      <p class="text-sm text-ink/55"><%= photos.size %>/<%= Memory::MAX_PHOTOS %> ảnh · tối đa <%= MemoryPhoto::MAX_BYTES / 1.megabyte %> MB mỗi ảnh</p>
+    </div>
+    <p class="mt-1 text-sm text-ink/60">Kéo ảnh để đổi thứ tự xuất hiện trong video. Chú thích ngắn sẽ hiện dưới ảnh.</p>
+
+    <% if memory.photos_remaining.positive? %>
+      <div class="mt-6"
+           data-controller="photo-upload"
+           data-photo-upload-url-value="<%= memory_photos_path(memory) %>"
+           data-photo-upload-remaining-value="<%= memory.photos_remaining %>"
+           data-photo-upload-max-bytes-value="<%= MemoryPhoto::MAX_BYTES %>"
+           data-photo-upload-types-value="<%= MemoryPhoto::ALLOWED_CONTENT_TYPES.to_json %>">
+        <div data-photo-upload-target="dropzone"
+             data-action="dragover->photo-upload#dragover dragleave->photo-upload#dragleave drop->photo-upload#drop"
+             class="flex flex-col items-center justify-center rounded-xl border border-dashed border-ink/25 bg-paper px-6 py-10 text-center transition-colors">
+          <p class="font-display text-lg">Thả ảnh vào đây</p>
+          <p class="mt-1 text-sm text-ink/55">JPEG, PNG hoặc WebP. Có thể chọn nhiều ảnh cùng lúc.</p>
+          <button type="button" class="btn-quiet mt-4" data-action="photo-upload#pick">Chọn ảnh từ máy</button>
+          <input type="file" accept="image/jpeg,image/png,image/webp" multiple class="sr-only"
+                 data-photo-upload-target="input" data-action="change->photo-upload#choose" tabindex="-1">
+        </div>
+
+        <div data-photo-upload-target="queue" class="mt-4 flex flex-wrap gap-4 empty:hidden"></div>
+        <p data-photo-upload-target="status" class="mt-2 text-sm text-rose empty:hidden" role="status"></p>
+        <button type="button" class="btn-primary mt-4" data-photo-upload-target="submit" data-action="photo-upload#upload" hidden>Tải lên</button>
+
+        <%# Dự phòng khi trình duyệt tắt JavaScript %>
+        <noscript>
+          <%= form_with url: memory_photos_path(memory), scope: :photo, multipart: true, class: "mt-4 flex items-center gap-3" do |f| %>
+            <%= f.file_field :images, multiple: true, accept: "image/jpeg,image/png,image/webp" %>
+            <%= f.submit "Tải lên", class: "btn-primary" %>
+          <% end %>
+        </noscript>
+      </div>
+    <% else %>
+      <p class="mt-6 rounded-lg bg-mist/60 px-4 py-3 text-sm text-ink/70">Đã đủ <%= Memory::MAX_PHOTOS %> ảnh. Xóa bớt nếu muốn thay ảnh khác.</p>
+    <% end %>
+
+    <% if photos.any? %>
+      <div class="mt-8" data-controller="photo-sort" data-photo-sort-url-value="<%= reorder_memory_photos_path(memory) %>">
+        <p data-photo-sort-target="status" class="mb-3 h-5 text-sm text-plum" role="status"></p>
+        <ul data-photo-sort-target="list" class="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+          <% photos.each_with_index do |photo, index| %>
+            <li id="photo-<%= photo.id %>" data-photo-id="<%= photo.id %>">
+              <div class="print relative">
+                <div data-sort-handle class="cursor-grab active:cursor-grabbing" title="Kéo để sắp xếp">
+                  <% if photo.image.attached? %>
+                    <%= image_tag photo.image.variant(:thumb), alt: photo.alt_text || photo.caption || "Ảnh #{index + 1}",
+                          class: "aspect-square w-full select-none object-cover", draggable: false, loading: "lazy" %>
+                  <% end %>
+                </div>
+                <span data-position-label class="absolute left-3.5 top-3.5 min-w-6 rounded-full bg-ink/80 px-2 py-0.5 text-center text-xs text-white"><%= index + 1 %></span>
+                <% if photo.cover? %>
+                  <span class="absolute right-3.5 top-3.5 rounded-full bg-gilt px-2 py-0.5 text-xs text-white">Ảnh bìa</span>
+                <% end %>
+              </div>
+
+              <%= form_with model: photo, scope: :memory_photo, url: memory_photo_path(memory, photo), method: :patch,
+                    class: "mt-2.5 flex gap-1.5" do |f| %>
+                <%= f.text_field :caption, placeholder: "Chú thích", maxlength: 140,
+                      class: "input !mt-0 !px-2.5 !py-1.5 text-xs", "aria-label": "Chú thích ảnh #{index + 1}" %>
+                <%= f.submit "Lưu", class: "btn-quiet !px-3 !py-1.5 !text-xs" %>
+              <% end %>
+
+              <div class="mt-1.5 flex items-center justify-between text-xs">
+                <% if photo.cover? %>
+                  <span class="text-ink/40">Đang là ảnh bìa</span>
+                <% else %>
+                  <%= button_to "Đặt làm ảnh bìa", memory_photo_path(memory, photo), method: :patch,
+                        params: { memory_photo: { cover: true } }, class: "text-plum hover:underline" %>
+                <% end %>
+                <%= button_to "Xóa", memory_photo_path(memory, photo), method: :delete, class: "text-rose hover:underline",
+                      form: { data: { turbo_confirm: "Xóa ảnh này?" } } %>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  </div>
+</div>

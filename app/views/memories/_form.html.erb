@@ -1,0 +1,66 @@
+<%= form_with model: memory, class: "space-y-8" do |f| %>
+  <%= render "shared/form_errors", record: memory %>
+
+  <div class="grid gap-6 sm:grid-cols-2">
+    <div class="sm:col-span-2">
+      <%= f.label :title, class: "field-label" %>
+      <%= f.text_field :title, class: "input text-base", placeholder: "Ví dụ: 6 năm ngày cưới", required: true, maxlength: 120, autofocus: memory.new_record? %>
+    </div>
+
+    <div>
+      <%= f.label :occasion, class: "field-label" %>
+      <%= f.select :occasion, Memory::OCCASIONS.map { |key, label| [label, key] }, {}, class: "input" %>
+    </div>
+
+    <div>
+      <%= f.label :person_names, class: "field-label" %>
+      <%= f.text_field :person_names, class: "input", placeholder: "Ví dụ: Minh & Lan", maxlength: 200 %>
+    </div>
+
+    <div>
+      <%= f.label :start_date, class: "field-label" %>
+      <%= f.date_field :start_date, class: "input" %>
+    </div>
+
+    <div>
+      <%= f.label :end_date, class: "field-label" %>
+      <%= f.date_field :end_date, class: "input" %>
+      <p class="field-hint">Để trống nếu câu chuyện vẫn đang tiếp diễn.</p>
+    </div>
+  </div>
+
+  <fieldset>
+    <legend class="field-label">Phong cách</legend>
+    <div class="mt-2 grid gap-3 sm:grid-cols-3">
+      <% Memory::STYLES.each do |key, label| %>
+        <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-ink/15 bg-white px-4 py-3 text-sm has-[:checked]:border-plum has-[:checked]:ring-2 has-[:checked]:ring-plum/20">
+          <%= f.radio_button :style, key, class: "accent-plum" %>
+          <span><%= label %></span>
+        </label>
+      <% end %>
+    </div>
+  </fieldset>
+
+  <div>
+    <%= f.label :story_notes, class: "field-label" %>
+    <%= f.text_area :story_notes, rows: 6, class: "input leading-relaxed", maxlength: 3000,
+          placeholder: "Sáu năm qua có nhiều thay đổi, có những lúc khó khăn nhưng chúng mình vẫn luôn đồng hành cùng nhau…" %>
+    <p class="field-hint">AI chỉ dùng những gì bạn viết ở đây và chú thích ảnh — không tự bịa thêm chi tiết.</p>
+  </div>
+
+  <div class="grid gap-6 sm:grid-cols-2">
+    <div>
+      <%= f.label :video_template_id, class: "field-label" %>
+      <%= f.collection_select :video_template_id, VideoTemplate.active, :id, :name, {}, class: "input" %>
+    </div>
+    <div>
+      <%= f.label :music_track, class: "field-label" %>
+      <%= f.select :music_track, MusicLibrary.options_for_select, { include_blank: "Tự chọn theo phong cách" }, class: "input" %>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-3 border-t border-ink/10 pt-6">
+    <%= f.submit memory.new_record? ? "Tạo kỷ niệm" : "Lưu thay đổi", class: "btn-primary", data: { turbo_submits_with: "Đang lưu…" } %>
+    <%= link_to "Hủy", memory.new_record? ? root_path : memory_path(memory), class: "btn-quiet" %>
+  </div>
+<% end %>

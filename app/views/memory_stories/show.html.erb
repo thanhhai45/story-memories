@@ -1,0 +1,54 @@
+<% page_title "Câu chuyện", @memory.title %>
+
+<div class="mx-auto max-w-3xl">
+  <%= link_to "Quay lại #{@memory.title}", memory_path(@memory, anchor: "story"), class: "link text-sm" %>
+  <h1 class="mt-3 text-3xl sm:text-4xl">Câu chuyện</h1>
+  <p class="mt-2 text-ink/60">
+    Tiêu đề, lời dẫn từng chương và lời kết sẽ xuất hiện trong video. Số ảnh ở mỗi chương là thứ tự ảnh trong album.
+  </p>
+
+  <%= turbo_frame_tag "story_panel", class: "mt-8 block" do %>
+    <% if @latest_story&.in_progress? %>
+      <div class="section flex items-center gap-4"
+           data-controller="status-poll"
+           data-status-poll-active-value="true"
+           data-status-poll-url-value="<%= memory_story_path(@memory) %>">
+        <span class="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-plum/25 border-t-plum" aria-hidden="true"></span>
+        <div>
+          <p class="font-medium"><%= ai_configured? ? "AI đang viết lời dẫn…" : "Đang tạo bản nháp…" %></p>
+          <p class="text-sm text-ink/55">Thường mất 10–30 giây. Trang sẽ tự cập nhật.</p>
+        </div>
+      </div>
+    <% else %>
+      <% if @latest_story&.failed? %>
+        <p class="mb-6 rounded-lg border border-rose/30 bg-rose/5 px-4 py-3 text-sm text-rose" role="alert">
+          <%= @latest_story.error_message.presence || "Không tạo được câu chuyện." %>
+        </p>
+      <% end %>
+
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm text-ink/55">
+          <% if @story.persisted? %>
+            <%= { "ai" => "Viết bởi AI", "template" => "Bản nháp tự động", "manual" => "Bạn tự viết" }[@story.source] || "Đã lưu" %><%= " và đã chỉnh sửa" if @story.generated_content["edited"] && @story.source != "manual" %>,
+            cập nhật <%= l(@story.updated_at, format: :short) %>
+          <% else %>
+            Chưa có lời dẫn. Tự viết bên dưới hoặc để AI gợi ý.
+          <% end %>
+        </p>
+        <%= button_to (@story.persisted? ? (ai_configured? ? "Viết lại bằng AI" : "Tạo lại bản nháp") : (ai_configured? ? "Viết câu chuyện giúp tôi" : "Tạo bản nháp lời dẫn")),
+              memory_story_path(@memory), class: @story.persisted? ? "btn-quiet" : "btn-primary",
+              form: { data: { turbo_frame: "_top", turbo_confirm: (@story.persisted? ? "Tạo phiên bản mới? Bản đang có vẫn được giữ cho tới khi bản mới xong." : nil) } },
+              data: { turbo_submits_with: "Đang gửi…" } %>
+      </div>
+
+      <% unless ai_configured? %>
+        <p class="mb-6 rounded-lg bg-mist/60 px-4 py-3 text-sm text-ink/70">
+          Chưa cấu hình <code class="font-mono text-xs">ANTHROPIC_API_KEY</code> nên ứng dụng tạo bản nháp từ chính tâm sự của bạn.
+          Thêm key vào môi trường để AI viết lời dẫn giàu cảm xúc hơn.
+        </p>
+      <% end %>
+
+      <%= render "form", memory: @memory, story: @story, photos: @photos %>
+    <% end %>
+  <% end %>
+</div>

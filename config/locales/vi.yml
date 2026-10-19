@@ -1,0 +1,31 @@
+vi:
+  activerecord:
+    models:
+      memory: "Kỷ niệm"
+      memory_photo: "Ảnh"
+      story: "Câu chuyện"
+      video_render: "Video"
+      video_template: "Mẫu video"
+    attributes:
+      memory:
+        title: "Tên kỷ niệm"
+        occasion: "Dịp"
+        start_date: "Ngày bắt đầu"
+        end_date: "Ngày kết thúc"
+        person_names: "Tên người liên quan"
+        story_notes: "Đôi dòng tâm sự"
+        style: "Phong cách"
+        video_template: "Mẫu video"
+        music_track: "Nhạc nền"
+      memory_photo:
+        image: "Ảnh"
+        caption: "Chú thích"
+        taken_at: "Ngày chụp"
+        alt_text: "Mô tả ảnh"
+      story:
+        title: "Tiêu đề"
+        subtitle: "Phụ đề"
+        ending: "Lời kết"
+  date:
+    formats:
+      short_vi: "%d/%m/%Y"

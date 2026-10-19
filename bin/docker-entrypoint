@@ -1,0 +1,14 @@
+#!/bin/bash -e
+
+# jemalloc giảm phân mảnh bộ nhớ của Ruby
+if [ -z "${LD_PRELOAD+x}" ]; then
+    LD_PRELOAD=$(find /usr/lib -name libjemalloc.so.2 -print -quit)
+    export LD_PRELOAD
+fi
+
+# Chuẩn bị DB (tạo, migrate, seed lần đầu) trước khi chạy web server
+if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+  ./bin/rails db:prepare
+fi
+
+exec "${@}"

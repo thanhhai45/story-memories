@@ -1,0 +1,60 @@
+<% scenes = story.scenes.presence || [ { "title" => "", "narration" => "", "photo_positions" => (1..photos.size).to_a } ] %>
+
+<%= form_with model: story, scope: :story, url: memory_story_path(memory), method: :patch,
+      class: "space-y-8", data: { turbo_frame: "_top", controller: "story-form", story_form_max_value: Stories::Content::MAX_SCENES } do |f| %>
+  <%= render "shared/form_errors", record: story %>
+
+  <% if photos.any? %>
+    <div>
+      <p class="field-label">Thứ tự ảnh</p>
+      <ol class="mt-2 flex gap-2 overflow-x-auto pb-2">
+        <% photos.each_with_index do |photo, index| %>
+          <li class="relative shrink-0">
+            <%= image_tag photo.image.variant(:thumb), alt: photo.caption || "Ảnh #{index + 1}", class: "h-16 w-16 rounded object-cover", loading: "lazy" %>
+            <span class="absolute bottom-0.5 left-0.5 rounded bg-ink/80 px-1.5 text-[11px] text-white"><%= index + 1 %></span>
+          </li>
+        <% end %>
+      </ol>
+    </div>
+  <% end %>
+
+  <div class="section space-y-5">
+    <div>
+      <%= f.label :title, class: "field-label" %>
+      <%= f.text_field :title, value: story.title, class: "input font-display text-lg", maxlength: Stories::Content::LIMITS[:title], required: true,
+            placeholder: "Ví dụ: 6 năm cùng nhau" %>
+    </div>
+    <div>
+      <%= f.label :subtitle, class: "field-label" %>
+      <%= f.text_field :subtitle, value: story.subtitle, class: "input", maxlength: Stories::Content::LIMITS[:subtitle], placeholder: "2020 — 2026" %>
+    </div>
+  </div>
+
+  <div>
+    <div class="flex items-baseline justify-between">
+      <h2 class="text-2xl">Các chương</h2>
+      <span class="text-sm text-ink/50" data-story-form-target="count"></span>
+    </div>
+    <div class="mt-4 space-y-5" data-story-form-target="scenes">
+      <% scenes.each do |scene| %>
+        <%= render "memory_stories/scene_fields", scene: scene, photo_count: photos.size %>
+      <% end %>
+    </div>
+    <button type="button" class="btn-quiet mt-4" data-action="story-form#addScene">Thêm chương</button>
+
+    <template data-story-form-target="template">
+      <%= render "memory_stories/scene_fields", scene: { "title" => "", "narration" => "", "photo_positions" => [] }, photo_count: photos.size %>
+    </template>
+  </div>
+
+  <div class="section">
+    <%= f.label :ending, class: "field-label" %>
+    <%= f.text_area :ending, value: story.ending, rows: 3, class: "input font-display italic leading-relaxed",
+          maxlength: Stories::Content::LIMITS[:ending], placeholder: "Mong chúng ta còn thật nhiều năm tháng bên nhau." %>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-3">
+    <%= f.submit "Lưu nội dung", class: "btn-primary", data: { turbo_submits_with: "Đang lưu…" } %>
+    <%= link_to "Sang bước dựng video", memory_path(memory, anchor: "video"), class: "link text-sm", data: { turbo_frame: "_top" } %>
+  </div>
+<% end %>

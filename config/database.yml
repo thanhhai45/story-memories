@@ -1,0 +1,31 @@
+# Cấu hình qua biến môi trường để chạy giống nhau trong docker-compose và Kamal.
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 }.to_i + 2 %>
+  host: <%= ENV.fetch("DB_HOST", "localhost") %>
+  port: <%= ENV.fetch("DB_PORT", 5432) %>
+  username: <%= ENV.fetch("POSTGRES_USER", "postgres") %>
+  password: <%= ENV["POSTGRES_PASSWORD"] %>
+
+development:
+  primary:
+    <<: *default
+    database: anniversary_memories_development
+  queue:
+    <<: *default
+    database: anniversary_memories_development_queue
+    migrations_paths: db/queue_migrate
+
+test:
+  <<: *default
+  database: anniversary_memories_test
+
+production:
+  primary: &primary_production
+    <<: *default
+    database: <%= ENV.fetch("POSTGRES_DB", "anniversary_memories_production") %>
+  queue:
+    <<: *primary_production
+    database: <%= ENV.fetch("POSTGRES_DB", "anniversary_memories_production") %>_queue
+    migrations_paths: db/queue_migrate

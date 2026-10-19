@@ -1,0 +1,38 @@
+<% page_title @memory.title %>
+
+<header class="mb-10">
+  <%= link_to "Tất cả kỷ niệm", root_path, class: "link text-sm" %>
+  <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <h1 class="text-4xl leading-tight sm:text-5xl"><%= @memory.title %></h1>
+      <p class="mt-2 text-ink/60">
+        <%= [@memory.occasion_label, date_range(@memory), @memory.person_names, @memory.style_label].compact.join(", ") %>
+      </p>
+    </div>
+    <div class="flex shrink-0 items-center gap-2">
+      <%= link_to "Sửa thông tin", edit_memory_path(@memory), class: "btn-quiet !px-4 !py-2" %>
+      <%= button_to "Xóa", memory_path(@memory), method: :delete, class: "btn-danger !px-4 !py-2",
+            form: { data: { turbo_confirm: "Xóa kỷ niệm này cùng toàn bộ ảnh và video? Không thể hoàn tác." } } %>
+    </div>
+  </div>
+  <% if @memory.story_notes.present? %>
+    <blockquote class="mt-6 max-w-2xl border-l-2 border-gilt/60 pl-4 font-display text-lg italic leading-relaxed text-ink/75">
+      <%= simple_format(@memory.story_notes, {}, wrapper_tag: "span") %>
+    </blockquote>
+  <% end %>
+</header>
+
+<ol class="space-y-8">
+  <li class="section" id="photos">
+    <%= render "memories/photos_step", memory: @memory, photos: @photos %>
+  </li>
+  <li class="section" id="story">
+    <%= render "memories/story_step", memory: @memory, story: @story, latest_story: @latest_story %>
+  </li>
+  <li class="section" id="video">
+    <%= render "memories/video_step", memory: @memory, renders: @renders, latest_completed_render: @latest_completed_render, templates: @templates %>
+  </li>
+  <li class="section" id="share">
+    <%= render "memories/share_step", memory: @memory, latest_completed_render: @latest_completed_render %>
+  </li>
+</ol>

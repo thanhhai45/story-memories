@@ -1,0 +1,56 @@
+<% page_title "Những khoảnh khắc đáng nhớ" %>
+
+<section class="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+  <div class="max-w-xl">
+    <h1 class="text-4xl leading-tight sm:text-5xl">Những khoảnh khắc đáng nhớ</h1>
+    <p class="mt-3 text-ink/65">
+      Mỗi kỷ niệm là một cuộn phim nhỏ: chọn ảnh, viết đôi dòng, để AI gợi lời dẫn,
+      rồi xuất thành video MP4 có nhạc nền để giữ lại hoặc gửi cho người thương.
+    </p>
+  </div>
+  <%= link_to "Tạo kỷ niệm mới", new_memory_path, class: "btn-primary self-start sm:self-auto" %>
+</section>
+
+<% if @memories.empty? %>
+  <div class="section flex flex-col items-center px-6 py-16 text-center">
+    <div class="relative mb-8 h-28 w-40" aria-hidden="true">
+      <div class="print absolute left-2 top-3 h-24 w-28 -rotate-6 bg-mist"></div>
+      <div class="print absolute left-10 top-0 h-24 w-28 rotate-3"><div class="h-full w-full bg-plum/15"></div></div>
+    </div>
+    <h2 class="text-2xl">Chưa có kỷ niệm nào</h2>
+    <p class="mt-2 max-w-md text-ink/60">Bắt đầu với một dịp bạn muốn nhớ mãi — ngày cưới, ngày quen nhau, sinh nhật của ai đó.</p>
+    <%= link_to "Tạo kỷ niệm đầu tiên", new_memory_path, class: "btn-primary mt-6" %>
+  </div>
+<% else %>
+  <ul class="grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+    <% @memories.each_with_index do |memory, index| %>
+      <% photos = memory.memory_photos %>
+      <% cover = photos.detect(&:cover?) || photos.first %>
+      <li>
+        <%= link_to memory_path(memory), class: "group block" do %>
+          <div class="relative mx-2 aspect-[4/3]">
+            <% if photos.size > 1 %>
+              <div class="print absolute inset-0 <%= index.even? ? '-rotate-3' : 'rotate-2' %> bg-mist" aria-hidden="true"></div>
+            <% end %>
+            <div class="print absolute inset-0 transition-transform group-hover:-translate-y-1">
+              <% if cover&.image&.attached? %>
+                <%= image_tag cover.image.variant(:thumb), alt: "", class: "h-full w-full object-cover", loading: "lazy" %>
+              <% else %>
+                <div class="flex h-full w-full items-center justify-center bg-mist text-sm text-ink/45">Chưa có ảnh</div>
+              <% end %>
+            </div>
+          </div>
+          <div class="mt-5 px-2">
+            <div class="flex items-start justify-between gap-3">
+              <h2 class="text-xl leading-snug group-hover:text-plum"><%= memory.title %></h2>
+              <%= memory_status_badge(memory) %>
+            </div>
+            <p class="mt-1 text-sm text-ink/55">
+              <%= [memory.occasion_label, memory.period_label, "#{photos.size} ảnh"].compact.join(", ") %>
+            </p>
+          </div>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

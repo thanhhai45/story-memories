@@ -1,0 +1,74 @@
+# Môi trường phát triển hoàn toàn bằng Docker:
+#   cp .env.example .env   # (tùy chọn) thêm ANTHROPIC_API_KEY
+#   docker compose up      # mở http://localhost:3000
+name: anniversary_memories
+
+x-app: &app
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  image: anniversary_memories-dev
+  volumes:
+    - .:/rails
+    - bundle:/usr/local/bundle
+  environment: &app-env
+    DB_HOST: db
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    LLM_MODEL: ${LLM_MODEL:-}
+    ADMIN_USERNAME: ${ADMIN_USERNAME:-}
+    ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+  tty: true
+  stdin_open: true
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # Chạy một lần: bundle install, khóa gem, tạo/migrate/seed database, build CSS
+  setup:
+    <<: *app
+    command: ./bin/docker-setup
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    <<: *app
+    command: ./bin/rails server -b 0.0.0.0 -p 3000
+    ports:
+      - "${PORT:-3000}:3000"
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+
+  # Solid Queue: sinh lời dẫn AI + dựng video FFmpeg
+  jobs:
+    <<: *app
+    command: ./bin/jobs
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+
+  # Tailwind CSS watcher
+  css:
+    <<: *app
+    command: ./bin/rails tailwindcss:watch[always]
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:
+  bundle:

@@ -1,0 +1,39 @@
+<div class="flex items-start gap-4">
+  <span class="step-number">2</span>
+  <div class="min-w-0 flex-1">
+    <h2 class="text-2xl">Câu chuyện</h2>
+
+    <% if latest_story&.in_progress? %>
+      <p class="mt-3 text-ink/70">AI đang viết lời dẫn cho bạn…</p>
+      <%= link_to "Xem tiến độ", memory_story_path(memory), class: "btn-quiet mt-4" %>
+    <% elsif story %>
+      <div class="mt-4 rounded-xl bg-paper px-5 py-4">
+        <p class="font-display text-xl"><%= story.title %></p>
+        <% if story.subtitle.present? %><p class="text-sm text-ink/55"><%= story.subtitle %></p><% end %>
+        <ol class="mt-3 space-y-1 text-sm text-ink/70">
+          <% story.scenes.each_with_index do |scene, index| %>
+            <li><span class="text-ink/40"><%= index + 1 %>.</span> <%= scene["title"] %></li>
+          <% end %>
+        </ol>
+      </div>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <%= link_to "Xem và chỉnh sửa lời dẫn", memory_story_path(memory), class: "btn-quiet" %>
+      </div>
+    <% else %>
+      <p class="mt-1 text-sm text-ink/60">
+        AI đọc tâm sự và chú thích ảnh của bạn rồi gợi ý tiêu đề, lời dẫn từng chương và lời kết. Bạn sửa lại tùy ý trước khi dựng video.
+      </p>
+      <% if latest_story&.failed? %>
+        <p class="mt-3 rounded-lg bg-rose/5 px-4 py-3 text-sm text-rose"><%= latest_story.error_message %></p>
+      <% end %>
+      <div class="mt-5 flex flex-wrap items-center gap-3">
+        <%= button_to ai_configured? ? "Viết câu chuyện giúp tôi" : "Tạo bản nháp lời dẫn", memory_story_path(memory),
+              class: "btn-primary", disabled: memory.memory_photos.empty?, data: { turbo_submits_with: "Đang gửi…" } %>
+        <%= link_to "Tự viết", memory_story_path(memory), class: "link text-sm" %>
+      </div>
+      <% if memory.memory_photos.empty? %>
+        <p class="field-hint">Thêm ảnh trước để lời dẫn được chia chương theo ảnh.</p>
+      <% end %>
+    <% end %>
+  </div>
+</div>

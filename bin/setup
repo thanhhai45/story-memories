@@ -1,0 +1,7 @@
+#!/bin/bash -e
+# Toàn bộ môi trường chạy trong Docker. Script này chỉ là lối tắt.
+cd "$(dirname "$0")/.."
+[ -f .env ] || cp .env.example .env
+docker compose build
+docker compose up -d
+echo "Đang khởi động... xem log: docker compose logs -f setup web jobs"

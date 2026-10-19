@@ -1,0 +1,10 @@
+<% if record.errors.any? %>
+  <div class="mb-6 rounded-lg border border-rose/30 bg-rose/5 px-4 py-3 text-sm text-rose" role="alert">
+    <p class="font-medium">Chưa lưu được vì:</p>
+    <ul class="mt-1 list-disc pl-5">
+      <% record.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
