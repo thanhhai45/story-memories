@@ -1,6 +1,4 @@
 class ApplicationController < ActionController::Base
-  include AdminAuthentication
-
   helper_method :ai_configured?
 
   private

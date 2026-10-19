@@ -88,7 +88,6 @@ Font (Playfair Display, Be Vietnam Pro — giấy phép OFL, đủ dấu tiếng
 
 ## Bảo mật và quyền riêng tư (khi chưa có đăng nhập)
 
-- **Basic Auth** cho toàn bộ trang quản trị khi đặt `ADMIN_PASSWORD`. Ở production, nếu thiếu `ADMIN_PASSWORD` thì trang quản trị trả 503 (trừ khi cố ý đặt `ALLOW_OPEN_ADMIN=true`).
 - Trang chia sẻ dùng **token ngẫu nhiên 32 ký tự** (không dùng ID tuần tự), chỉ hoạt động khi bật chia sẻ; có thể tạo token mới để thu hồi. Link file video trên trang chia sẻ **hết hạn sau 1 giờ**, nên tắt chia sẻ là thu hồi thật. Trang gửi `noindex`, `no-referrer`, `no-store`; không có nút sửa, không lộ lỗi hay prompt.
 - Ảnh được kiểm tra ở server: loại file do Active Storage nhận diện **và** chữ ký nhị phân đầu file; giới hạn dung lượng và số lượng; rate limit cho upload, sinh AI và dựng video.
 - FFmpeg luôn chạy bằng danh sách tham số (không qua shell), có timeout, chỉ dùng file nội bộ; không bao giờ nhận URL hay đường dẫn từ người dùng.
@@ -104,7 +103,7 @@ Cần: một máy chủ Ubuntu có SSH bằng key, tên miền trỏ về IP má
 cp .env.deploy.example .env.deploy
 # điền DEPLOY_HOST, APP_DOMAIN, REGISTRY_USERNAME, KAMAL_REGISTRY_PASSWORD,
 # SECRET_KEY_BASE (openssl rand -hex 64), POSTGRES_PASSWORD (openssl rand -hex 24),
-# ADMIN_PASSWORD, ANTHROPIC_API_KEY
+# ANTHROPIC_API_KEY
 ssh-add ~/.ssh/id_ed25519   # Kamal dùng ssh-agent
 git add -A && git commit -m "deploy"   # Kamal gắn tag image theo commit git
 
@@ -130,7 +129,7 @@ docker exec anniversary_memories-db pg_dump -U anniversary anniversary_memories_
 ```
 
 ### Checklist production
-- [ ] `SECRET_KEY_BASE`, `POSTGRES_PASSWORD`, `ADMIN_PASSWORD` đã đặt
+- [ ] `SECRET_KEY_BASE`, `POSTGRES_PASSWORD` đã đặt
 - [ ] `ANTHROPIC_API_KEY` (nếu dùng AI)
 - [ ] Tên miền trỏ đúng, HTTPS hoạt động
 - [ ] Container `job` đang chạy: `make kamal ARGS="app details"`

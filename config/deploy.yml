@@ -13,6 +13,11 @@ servers:
       - <%= ENV.fetch("DEPLOY_HOST", "203.0.113.10") %>
     cmd: bin/jobs
 
+# Kamal nối thẳng bằng IP nên không đọc alias trong ~/.ssh/config — khai báo user/port ở đây
+ssh:
+  user: <%= ENV.fetch("DEPLOY_SSH_USER", "root") %>
+  port: <%= ENV.fetch("DEPLOY_SSH_PORT", "22") %>
+
 proxy:
   ssl: false
   host: <%= ENV.fetch("APP_DOMAIN", "memories.example.com") %>
@@ -32,13 +37,11 @@ env:
   secret:
     - RAILS_MASTER_KEY
     - POSTGRES_PASSWORD
-    - ADMIN_PASSWORD
     - ANTHROPIC_API_KEY
   clear:
     DB_HOST: anniversary_memories-db
     POSTGRES_USER: anniversary
     POSTGRES_DB: anniversary_memories_production
-    ADMIN_USERNAME: <%= ENV.fetch("ADMIN_USERNAME", "admin") %>
     LLM_MODEL: <%= ENV.fetch("LLM_MODEL", "claude-sonnet-5-5") %>
     ANTHROPIC_WORKSPACE_ID: <%= ENV.fetch("ANTHROPIC_WORKSPACE_ID", "") %>
     APP_HOST: <%= ENV.fetch("APP_DOMAIN", "memories.example.com") %>
@@ -75,8 +78,8 @@ accessories:
   db:
     image: postgres:16
     host: <%= ENV.fetch("DEPLOY_HOST", "203.0.113.10") %>
-    # Chỉ mở cho localhost của máy chủ, không public ra Internet
-    port: "127.0.0.1:5432:5432"
+    # Không publish port: app nối qua mạng Docker "kamal" bằng tên anniversary_memories-db
+    # (tránh đụng Postgres của app khác trên cùng máy chủ)
     env:
       clear:
         POSTGRES_USER: anniversary

@@ -1,8 +1,6 @@
 # Trang xem công khai bằng token khó đoán. Không có nút sửa, không lộ lỗi,
 # prompt hay dữ liệu nội bộ. Link file video có hạn dùng ngắn (xem SharedMemoriesHelper).
 class SharedMemoriesController < ApplicationController
-  allow_public_access
-
   layout "shared"
   before_action :set_privacy_headers
 
