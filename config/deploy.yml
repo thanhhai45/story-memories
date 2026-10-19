@@ -14,10 +14,11 @@ servers:
     cmd: bin/jobs
 
 proxy:
-  ssl: true
+  ssl: false
   host: <%= ENV.fetch("APP_DOMAIN", "memories.example.com") %>
   # Upload ảnh tối đa 15 MB/ảnh, cho đủ thời gian khi mạng chậm
   response_timeout: 120
+  app_port: 3000
 
 registry:
 <% if ENV["REGISTRY_SERVER"].to_s != "" %>
@@ -29,7 +30,7 @@ registry:
 
 env:
   secret:
-    - SECRET_KEY_BASE
+    - RAILS_MASTER_KEY
     - POSTGRES_PASSWORD
     - ADMIN_PASSWORD
     - ANTHROPIC_API_KEY
