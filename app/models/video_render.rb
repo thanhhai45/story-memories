@@ -48,7 +48,10 @@ class VideoRender < ApplicationRecord
     update!(status: "completed", progress: 100, finished_at: Time.current, metadata:)
   end
 
+  # Bỏ qua validation: lỗi phải luôn được ghi lại, kể cả khi bản ghi không hợp lệ
+  # (vd. bản nhạc đã bị gỡ khỏi thư viện), nếu không video sẽ kẹt ở "queued".
   def mark_failed!(message)
-    update!(status: "failed", finished_at: Time.current, error_message: message.to_s.truncate(500))
+    update_columns(status: "failed", finished_at: Time.current, error_message: message.to_s.truncate(500),
+                   updated_at: Time.current)
   end
 end

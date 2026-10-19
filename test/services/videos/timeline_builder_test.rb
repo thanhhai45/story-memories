@@ -42,6 +42,11 @@ class Videos::TimelineBuilderTest < ActiveSupport::TestCase
     assert timeline.photo_segments.all? { |s| s[:duration] >= Videos::TimelineBuilder::MIN_PHOTO_DURATION }
   end
 
+  test "cycles template motions and ignores unknown ones" do
+    timeline = build({ "title" => "T" }, "motions" => %w[bounce nope drift])
+    assert_equal %w[bounce drift bounce drift bounce], timeline.photo_segments.map { |s| s[:motion] }
+  end
+
   test "requires photos" do
     assert_raises(Videos::Error) do
       Videos::TimelineBuilder.new(content: {}, photos: [], config: {}).call

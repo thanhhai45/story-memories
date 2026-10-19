@@ -25,6 +25,14 @@ class VideoRenderTest < ActiveSupport::TestCase
     assert_equal "Lỗi thử", video_render.error_message
   end
 
+  test "mark_failed! records the failure even when the record is invalid" do
+    render = VideoRender.create!(memory: @memory, status: "queued")
+    render.update_column(:music_track, "removed_track")
+    render.reload.mark_failed!("Lỗi")
+    assert_equal "failed", render.reload.status
+    assert_equal "Lỗi", render.error_message
+  end
+
   test "download filename is ascii" do
     video_render = @memory.video_renders.create!(status: "queued")
     assert_match(/\A6-nam-ngay-cuoi-\d+\.mp4\z/, video_render.download_filename)

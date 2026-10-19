@@ -12,6 +12,8 @@ module Videos
     end
 
     MOTIONS = %w[zoom_in pan_right zoom_out pan_left].freeze
+    # Template có thể chọn danh sách riêng (config["motions"]) trong số này
+    ALL_MOTIONS = (MOTIONS + %w[pan_up pan_down drift bounce]).freeze
     MIN_PHOTO_DURATION = 2.2
 
     def initialize(content:, photos:, config:, memory_title: nil)
@@ -35,6 +37,8 @@ module Videos
         subtitle: text(@content["subtitle"]), photo_id: cover_id
       }
 
+      motions = Array(@config["motions"] || @config[:motions]).map(&:to_s) & ALL_MOTIONS
+      motions = MOTIONS if motions.empty?
       motion_index = 0
       chapters.each do |chapter|
         if chapter[:title].present? || chapter[:narration].present?
@@ -47,7 +51,7 @@ module Videos
         chapter[:photos].each do |photo|
           segments << {
             kind: "photo", duration: photo_duration, photo_id: photo[:id],
-            caption: text(photo[:caption]), motion: MOTIONS[motion_index % MOTIONS.length]
+            caption: text(photo[:caption]), motion: motions[motion_index % motions.length]
           }
           motion_index += 1
         end

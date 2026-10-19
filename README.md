@@ -19,7 +19,7 @@ make up                     # hoặc: docker compose up --build
 Mở <http://localhost:3000>. Lần đầu mất vài phút vì service `setup` sẽ:
 
 1. `bundle install` vào volume `bundle` và tạo `Gemfile.lock` (khóa cho cả `x86_64-linux` và `aarch64-linux`).
-2. `db:prepare`: tạo database chính + database hàng đợi Solid Queue, chạy migration, seed 2 template video.
+2. `db:prepare`: tạo database chính + database hàng đợi Solid Queue, chạy migration, seed các template video.
 3. Build Tailwind CSS.
 
 Sau đó các service `web` (Rails), `jobs` (Solid Queue: AI + FFmpeg) và `css` (Tailwind watch) chạy song song.
@@ -120,7 +120,7 @@ make kamal ARGS="console"   # Rails console trên production
 - accessory `db` (PostgreSQL 16, chỉ mở cho localhost của máy chủ);
 - volume `anniversary_memories_storage` cho ảnh và video, dùng chung giữa web và job.
 
-Image production (`Dockerfile`) đã có `ffmpeg`, `ffprobe`, `libvips`. Lần deploy đầu `db:prepare` tự tạo 2 database, chạy migration và seed template.
+Image production (`Dockerfile`) đã có `ffmpeg`, `ffprobe`, `libvips`. Lần deploy đầu `db:prepare` tự tạo 2 database, chạy migration và seed template; mỗi lần khởi động đều chạy `templates:sync` để thêm template mới.
 
 **Lưu trữ**: mặc định lưu trên ổ đĩa máy chủ (volume). Muốn bền vững hơn hoặc chạy nhiều máy, đặt `ACTIVE_STORAGE_SERVICE=amazon` và các biến `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` (thêm `S3_ENDPOINT` cho Cloudflare R2/DigitalOcean Spaces).
 

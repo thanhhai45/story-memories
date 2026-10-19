@@ -3,10 +3,10 @@ require "test_helper"
 class Videos::RendererTest < ActiveSupport::TestCase
   setup { skip "FFmpeg chưa được cài" unless ffmpeg_available? }
 
-  def render_with(layout)
+  def render_with(layout, extra = {})
     photos = [ { id: 1, caption: "Đà Lạt 100% 'mùa thu' : [x]" }, { id: 2, caption: nil } ]
     config = { "layout" => layout, "width" => 320, "height" => 180, "fps" => 12, "transition" => 0.3,
-               "title_duration" => 1, "chapter_duration" => 1, "photo_duration" => 1, "ending_duration" => 1 }
+               "title_duration" => 1, "chapter_duration" => 1, "photo_duration" => 1, "ending_duration" => 1 }.merge(extra)
     timeline = Videos::TimelineBuilder.new(
       content: { "title" => "6 năm cùng nhau", "subtitle" => "2020 — 2026", "ending" => "Mãi bên nhau",
                  "scenes" => [ { "title" => "Bắt đầu", "narration" => "Một hành trình mới", "photo_positions" => [ 1, 2 ] } ] },
@@ -39,6 +39,14 @@ class Videos::RendererTest < ActiveSupport::TestCase
 
   test "renders the album template" do
     render_with("album")
+  end
+
+  # Dùng đúng cấu hình hiệu ứng của các template mặc định, chỉ thu nhỏ độ phân giải
+  %w[romantic_hearts playful_confetti happy_sunshine].each do |slug|
+    test "renders effects of the #{slug} template" do
+      config = VideoTemplate::DEFAULTS.find { |t| t[:slug] == slug }[:configuration]
+      render_with(config["layout"], config.slice("transitions", "motions", "grade", "particles", "fade_color", "max_zoom", "palette"))
+    end
   end
 
   test "fails cleanly when a photo is missing" do

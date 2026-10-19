@@ -14,6 +14,12 @@ module Videos
   class Renderer
     SUPERSAMPLE = 2
 
+    # Kiểu chuyển cảnh xfade cho phép dùng trong template (config["transitions"] xoay vòng)
+    TRANSITIONS = %w[
+      fade fadeblack fadewhite dissolve circleopen circlecrop radial zoomin diagtl hlslice
+      slideleft slideup slidedown wiperight smoothleft smoothright smoothup
+    ].freeze
+
     DEFAULT_CONFIG = {
       "layout" => "cinematic",
       "width" => 1280, "height" => 720, "fps" => 30,
@@ -128,7 +134,9 @@ module Videos
     def cinematic_still(segment)
       path = photo_path(segment)
       bg = if path
-        darkness = segment[:kind] == "photo" ? -0.22 : -0.38
+        # bg_brightness: template sáng (vd. Nắng ấm) nâng nền lên một chút
+        lift = @config["bg_brightness"].to_f.clamp(0.0, 0.3)
+        darkness = ((segment[:kind] == "photo" ? -0.22 : -0.38) + lift).round(3)
         "[0:v]scale=#{big_w}:#{big_h}:force_original_aspect_ratio=increase,crop=#{big_w}:#{big_h}," \
           "gblur=sigma=#{(big_h / 28.0).round(1)},eq=brightness=#{darkness}:saturation=0.7,vignette=PI/4[bg]"
       else
@@ -289,18 +297,39 @@ module Videos
     end
 
     def motion_expressions(segment, frames)
-      zmax = album? ? 1.04 : @config["max_zoom"].to_f
+      # Album mặc định chỉ zoom nhẹ; template album nào khai báo "motions" thì dùng đủ kiểu
+      custom_album_motion = album? && @config["motions"].present?
+      zmax = album? && !custom_album_motion ? 1.04 : @config["max_zoom"].to_f
       center_x = "iw/2-(iw/zoom/2)"
       center_y = "ih/2-(ih/zoom/2)"
       progress = "on/#{frames}"
       return ["1+0.035*#{progress}", center_x, center_y] unless segment[:kind] == "photo"
 
-      case album? ? "zoom_in" : segment[:motion]
-      when "zoom_out" then ["#{zmax}-#{(zmax - 1).round(4)}*#{progress}", center_x, center_y]
+      dz = (zmax - 1).round(4)
+      case album? && !custom_album_motion ? "zoom_in" : segment[:motion]
+      when "zoom_out" then ["#{zmax}-#{dz}*#{progress}", center_x, center_y]
       when "pan_right" then [zmax.to_s, "(iw-iw/zoom)*#{progress}", center_y]
       when "pan_left" then [zmax.to_s, "(iw-iw/zoom)*(1-#{progress})", center_y]
-      else ["1+#{(zmax - 1).round(4)}*#{progress}", center_x, center_y]
+      when "pan_up" then [zmax.to_s, center_x, "(ih-ih/zoom)*(1-#{progress})"]
+      when "pan_down" then [zmax.to_s, center_x, "(ih-ih/zoom)*#{progress}"]
+      # Vừa zoom vào vừa trôi dần sang phải
+      when "drift" then ["1+#{dz}*#{progress}", "(iw-iw/zoom)*(0.2+0.6*#{progress})", center_y]
+      # Nhịp "nảy": zoom vào rồi bật ra hai lần
+      when "bounce" then ["1+#{dz}*abs(sin(2*PI*#{progress}))", center_x, center_y]
+      else ["1+#{dz}*#{progress}", center_x, center_y]
       end
+    end
+
+    def transition_for(cut_index)
+      styles = Array(@config["transitions"]).map(&:to_s) & TRANSITIONS
+      styles = [@config["transition_style"].to_s.presence_in(TRANSITIONS) || "fade"] if styles.empty?
+      styles[(cut_index - 1) % styles.length]
+    end
+
+    def fade_color
+      hex = @config["fade_color"].to_s.delete("#")
+      return "0x#{hex}" if hex.match?(/\A\h{6}\z/)
+      album? ? background_hex : "black"
     end
 
     # ---------- step 3: join + music ----------
@@ -308,8 +337,6 @@ module Videos
     def assemble(clips, segments, output)
       total = segments.sum { |s| s[:duration] }.round(3)
       t = transition
-      style = @config["transition_style"].presence || "fade"
-      fade_color = album? ? background_hex : "black"
 
       inputs = clips.flat_map { |c| ["-i", c] }
       video_chain = []
@@ -320,12 +347,26 @@ module Videos
         prev = "[0:v]"
         (1...clips.length).each do |i|
           label = i == clips.length - 1 ? "[joined]" : "[x#{i}]"
-          video_chain << "#{prev}[#{i}:v]xfade=transition=#{style}:duration=#{t}:offset=#{offset.round(3)}#{label}"
+          video_chain << "#{prev}[#{i}:v]xfade=transition=#{transition_for(i)}:duration=#{t}:offset=#{offset.round(3)}#{label}"
           prev = label
           offset += segments[i][:duration]
         end
       end
-      video_chain << "[joined]fade=t=in:st=0:d=0.8:color=#{fade_color}," \
+
+      # Chỉnh màu trước, rồi mới phủ hạt bay để màu của hạt giữ nguyên
+      effects = Effects.new(config: @config, width:, height:, work_dir: @work_dir, seed: segments.length)
+      decorated = "[joined]"
+      if effects.grade_filter
+        video_chain << "[joined]#{effects.grade_filter}[graded]"
+        decorated = "[graded]"
+      end
+      sprites = effects.build_sprites!
+      sprite_index = clips.length + 1 # sau các clip và nhạc nền
+      if sprites.any?
+        chain, decorated = effects.overlay_chain(decorated, sprites, sprite_index)
+        video_chain.concat(chain)
+      end
+      video_chain << "#{decorated}fade=t=in:st=0:d=0.8:color=#{fade_color}," \
                      "fade=t=out:st=#{(total - 1.2).round(3)}:d=1.2:color=#{fade_color},format=yuv420p[v]"
 
       audio_index = clips.length
@@ -339,6 +380,7 @@ module Videos
         inputs += ["-f", "lavfi", "-t", total.to_s, "-i", "anullsrc=r=44100:cl=stereo"]
         audio_chain = "[#{audio_index}:a]anull[a]"
       end
+      sprites.each { |sprite| inputs += ["-loop", "1", "-framerate", fps.to_s, "-t", total.to_s, "-i", sprite.path] }
 
       Command.run!("ffmpeg", "-y", "-loglevel", "error", *inputs,
                    "-filter_complex", (video_chain + [audio_chain]).join(";"),

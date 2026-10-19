@@ -6,9 +6,10 @@ if [ -z "${LD_PRELOAD+x}" ]; then
     export LD_PRELOAD
 fi
 
-# Chuẩn bị DB (tạo, migrate, seed lần đầu) trước khi chạy web server
+# Chuẩn bị DB (tạo, migrate, seed lần đầu) trước khi chạy web server,
+# rồi đồng bộ template video mặc định (thêm template mới khi deploy)
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
-  ./bin/rails db:prepare
+  ./bin/rails db:prepare templates:sync
 fi
 
 exec "${@}"

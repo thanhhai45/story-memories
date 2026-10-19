@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
   <head>
-    <title><%= [content_for(:title).presence, "Anniversary Memories"].compact.join(" · ") %></title>
+    <title><%= [content_for(:title).presence, "Story Memories"].compact.join(" · ") %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <meta name="turbo-prefetch" content="false">
@@ -17,7 +17,7 @@
     <header class="border-b border-ink/10 bg-white/60">
       <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 py-4">
         <%= link_to root_path, class: "group flex items-baseline gap-2" do %>
-          <span class="font-display text-xl text-ink">Anniversary Memories</span>
+          <span class="font-display text-xl text-ink">Story Memories</span>
           <span class="hidden text-xs text-ink/50 sm:inline">ảnh và đôi dòng tâm sự, thành một thước phim</span>
         <% end %>
         <%= link_to "Tạo kỷ niệm mới", new_memory_path, class: "btn-quiet !px-4 !py-2" %>

@@ -39,6 +39,7 @@ env:
     POSTGRES_DB: anniversary_memories_production
     ADMIN_USERNAME: <%= ENV.fetch("ADMIN_USERNAME", "admin") %>
     LLM_MODEL: <%= ENV.fetch("LLM_MODEL", "claude-sonnet-5-5") %>
+    ANTHROPIC_WORKSPACE_ID: <%= ENV.fetch("ANTHROPIC_WORKSPACE_ID", "") %>
     APP_HOST: <%= ENV.fetch("APP_DOMAIN", "memories.example.com") %>
     RAILS_MAX_THREADS: 3
     VIDEO_RENDER_CONCURRENCY: 1

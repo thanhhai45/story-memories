@@ -48,6 +48,7 @@ module Stories
     rescue Llm::AnthropicClient::Timeout => e
       raise Error.new(e.message, user_message: "AI phản hồi quá lâu. Vui lòng thử lại.")
     rescue Llm::AnthropicClient::Error => e
+      @logger.error("[Stories::Generator] #{e.message}")
       raise Error.new(e.message, user_message: "Không kết nối được dịch vụ AI. Kiểm tra cấu hình API key rồi thử lại.")
     end
 

@@ -17,23 +17,28 @@ module Llm
     def self.from_env
       key = ENV["ANTHROPIC_API_KEY"].to_s.strip
       return nil if key.empty?
-      new(api_key: key, model: ENV["LLM_MODEL"].presence || DEFAULT_MODEL)
+      new(api_key: key, model: ENV["LLM_MODEL"].presence || DEFAULT_MODEL,
+          workspace_id: ENV["ANTHROPIC_WORKSPACE_ID"].to_s.strip.presence)
     end
 
-    def initialize(api_key:, model: DEFAULT_MODEL, open_timeout: 10, read_timeout: 90)
+    # workspace_id: chỉ cần khi API key không gắn với workspace nào
+    def initialize(api_key:, model: DEFAULT_MODEL, workspace_id: nil, open_timeout: 10, read_timeout: 90)
       @api_key = api_key
       @model = model
+      @workspace_id = workspace_id
       @open_timeout = open_timeout
       @read_timeout = read_timeout
     end
 
-    def complete(system:, user:, max_tokens: 1500, temperature: 0.8)
+    # Không gửi temperature: các model mới (claude-*-5-5) báo lỗi 400 nếu có
+    def complete(system:, user:, max_tokens: 1500)
       request = Net::HTTP::Post.new(ENDPOINT)
       request["x-api-key"] = @api_key
       request["anthropic-version"] = API_VERSION
+      request["anthropic-workspace-id"] = @workspace_id if @workspace_id
       request["content-type"] = "application/json"
       request.body = JSON.generate(
-        model: @model, max_tokens:, temperature:, system:,
+        model: @model, max_tokens:, system:,
         messages: [ { role: "user", content: user } ]
       )
 
@@ -61,12 +66,13 @@ module Llm
       when 429, 529
         raise RateLimited, "Anthropic API rate limited (#{code})"
       else
-        type = begin
-          JSON.parse(response.body).dig("error", "type")
+        # error.message của API không chứa key, an toàn để log
+        type, detail = begin
+          JSON.parse(response.body)["error"]&.values_at("type", "message")
         rescue JSON::ParserError
           nil
         end
-        raise Error, "Anthropic API error #{code} #{type}".strip
+        raise Error, "Anthropic API error #{code} #{type} #{detail.to_s.truncate(300)}".strip
       end
     rescue JSON::ParserError
       raise Error, "Anthropic API returned invalid JSON"
